@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\FollowController;
-use App\Http\Controllers\RatingController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\RateAndCommentController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,10 +28,8 @@ Route::get('/profile/{user:username}/followings', [UserController::class, 'userP
 Route::get('/upload-avatar-image', [UserController::class, 'uploadAvatarImageForm'])->middleware('auth')->name('avatar.upload');
 Route::post('/upload-avatar-image', [UserController::class, 'avatarImageSave'])->middleware('auth')->name('avatar.save');
 
-
 // custom middleware test
 Route::get('/test', [UserController::class, 'test'])->middleware('mustBeLoggedIn')->name('test');
-
 
 // post related routes
 Route::get('/create-post', [PostController::class, 'showCreateForm'])->name('createpost')->middleware('auth');
@@ -41,15 +38,16 @@ Route::put('/post-update/{post}', [PostController::class, 'editPost'])->name('cr
 Route::get('/post/{post}', [PostController::class, 'showSinglePost'])->name('singlepost');
 Route::get('/post/{post}/edit', [PostController::class, 'showEditSinglePost'])->name('editpost')->middleware('can:update,post');
 Route::delete('/post/{post}/delete', [PostController::class, 'deletePost'])->name('post.delete')->middleware('can:delete,post');
+Route::get('/search/{term}', [PostController::class, 'search'])->name('search');
 
 // Rate and Comments routes
 Route::post('/posts/{post}/comments', [RateAndCommentController::class, 'store'])
-  ->name('comments.store')
-  ->middleware('auth');
+    ->name('comments.store')
+    ->middleware('auth');
 
 Route::delete('/comments/{comment}', [RateAndCommentController::class, 'destroy'])
-  ->name('comments.destroy')
-  ->middleware('auth');
+    ->name('comments.destroy')
+    ->middleware('auth');
 Route::post('/posts/{post}/rate', [PostController::class, 'rate'])->name('posts.rate')->middleware('auth');
 
 Route::get('/explorer', [PostController::class, 'explorer'])->name('explorer');
