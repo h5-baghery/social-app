@@ -1,4 +1,4 @@
-<x-layout>
+<x-layout :doctitle="$post->title">
   <div class="container py-md-5 container--narrow">
       <div class="d-flex justify-content-between">
         <h2>{{$post->title}}</h2>
@@ -18,8 +18,8 @@
       </div>
 
       <p class="text-muted small mb-4">
-        <a href={{route('user.profile', ['user' => $post->user->username])}}><img class="avatar-tiny" src="{{$post->user->avatar}}" /></a>
-        Posted by <a href="#">{{$post->user->username}}</a> {{$post->created_at->diffForHumans()}}
+        <a href="{{route('user.profile', ['user' => $post->user->username])}}"><img class="avatar-tiny" src="{{$post->user->avatar}}" /></a>
+        Posted by <a href="{{route('user.profile', ['user' => $post->user->username])}}">{{$post->user->username}}</a> {{$post->created_at->diffForHumans()}}
       </p>
 
       <div class="body-content">

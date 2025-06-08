@@ -4,7 +4,7 @@
         <div class="card-body d-flex flex-column">
             <!-- Author -->
             <x-user-avatar :user="$post->user" size="36" class="mb-3"/>
-            
+
             <!-- Content -->
             <h5 class="card-title">{{ $post->title }}</h5>
             <p class="card-text flex-grow-1">{{ Str::limit($post->content, 120) }}</p>

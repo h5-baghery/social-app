@@ -35,9 +35,9 @@
             {{ $initials }}
         </div>
     @endif
-
 @if($link)
     </a>
 @else
     </div>
 @endif
+<span>{{$user->username}} sdfsdfsdf</span>

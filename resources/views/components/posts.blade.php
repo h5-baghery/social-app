@@ -4,4 +4,6 @@
       @empty
           <p>No Post found</p>
       @endforelse
+  {{$posts->links()}}
+
     </div>

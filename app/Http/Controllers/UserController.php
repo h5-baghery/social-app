@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Queue\RedisQueue;
+use Illuminate\Support\Facades\View;
 use Intervention\Image\ImageManager;
+use Illuminate\Contracts\Cache\Store;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -40,7 +42,7 @@ class UserController extends Controller
         return view('avatar-form');
     }
 
-    private function userProfileHelper($user)
+    private function getSharedDatax($user)
     {
         $posts = $user->posts()->latest()->get();
         $postCount = $posts->count();
@@ -54,30 +56,30 @@ class UserController extends Controller
             'followersCount' => $followersCount
         ];
 
-        return $data;
+        View::share('data', $data);
     }
 
     public function userProfile(User $user)
     {
-        $data = $this->userProfileHelper($user);
-        $posts = $user->posts()->withCount(['ratings', 'comments'])->paginate(10);
+        $this->getSharedDatax($user);
+        $posts = $user->posts()->withCount(['ratings', 'comments'])->paginate(1);
 
-        return view('user-profile', ['data' => $data, 'title' => 'profile', 'posts' => $posts]);
+        return view('user-profile', ['title' => 'profile', 'posts' => $posts]);
     }
 
     public function userProfileFollowers(User $user)
     {
-        $data = $this->userProfileHelper($user);
-        $followers = $user->followers()->withCount(['followers', 'followings'])->paginate(10);
-        return view('user-profile', ['data' => $data, 'title' => 'followers', 'followers' => $followers]);
+        $this->getSharedDatax($user);
+        $followers = $user->followers()->withCount(['followers', 'followings'])->paginate(1);
+        return view('user-profile', ['title' => 'followers', 'followers' => $followers]);
     }
 
     public function userProfileFollowings(User $user)
     {
-        $data = $this->userProfileHelper($user);
-        $followings = $user->followings()->withCount(['followers', 'followings'])->paginate(10);
+        $this->getSharedDatax($user);
+        $followings = $user->followings()->withCount(['followers', 'followings'])->paginate(1);
 
-        return view('user-profile', ['data' => $data, 'title' => 'followings', 'followings' => $followings]);
+        return view('user-profile', ['title' => 'followings', 'followings' => $followings]);
     }
 
     public function logout()
@@ -116,7 +118,8 @@ class UserController extends Controller
     public function homepage()
     {
         if (auth()->check()) {
-            return view('homepage-feed');
+            $posts = auth()->user()->feedPosts()->latest()->paginate(1);
+            return view('homepage-feed', ['posts' => $posts]);
         } else {
             return view('homepage');
         }

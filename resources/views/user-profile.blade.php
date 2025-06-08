@@ -1,4 +1,4 @@
-<x-layout>
+<x-layout doctitle="{{$data['user']->username}}'s Profile">
 
   
   <div class="list-group">
@@ -20,5 +20,4 @@
   @if ($title === 'followings')
     <x-followings :followings="$followings"/>
   @endif
-
 </x-layout>
