@@ -1,34 +1,31 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Events\OurExampleEvent;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Queue\RedisQueue;
-use Illuminate\Support\Facades\View;
-use Intervention\Image\ImageManager;
-use Illuminate\Contracts\Cache\Store;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
+use Illuminate\Validation\Rule;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class UserController extends Controller
 {
     public function avatarImageSave(Request $request)
     {
         $request->validate([
-            'avatar' => 'required|image|max:3000'
+            'avatar' => 'required|image|max:3000',
         ]);
-        $user = auth()->user();
+        $user     = auth()->user();
         $fileName = $user->id . "-" . uniqid() . '.jpg';
 
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($request->file('avatar'));
+        $manager   = new ImageManager(new Driver());
+        $image     = $manager->read($request->file('avatar'));
         $imageData = $image->cover(120, 120)->toJpeg();
         Storage::disk('public')->put('avatars/' . $fileName, $imageData);
-        $oldAvatar = $user->getRawOriginal('avatar');
+        $oldAvatar    = $user->getRawOriginal('avatar');
         $user->avatar = $fileName;
         $user->save();
         if ($oldAvatar && Storage::disk('public')->exists('avatars/' . $oldAvatar)) {
@@ -44,16 +41,16 @@ class UserController extends Controller
 
     private function getSharedDatax($user)
     {
-        $posts = $user->posts()->latest()->get();
-        $postCount = $posts->count();
-        $followersCount = $user->followers()->count();
+        $posts           = $user->posts()->latest()->get();
+        $postCount       = $posts->count();
+        $followersCount  = $user->followers()->count();
         $followingsCount = $user->followings()->count();
-        $data = [
-            'user' => $user,
-            'posts' => $posts,
-            'postCount' => $postCount,
+        $data            = [
+            'user'            => $user,
+            'posts'           => $posts,
+            'postCount'       => $postCount,
             'followingsCount' => $followingsCount,
-            'followersCount' => $followersCount
+            'followersCount'  => $followersCount,
         ];
 
         View::share('data', $data);
@@ -84,7 +81,9 @@ class UserController extends Controller
 
     public function logout()
     {
+        $username = auth()->user()->username;
         auth()->logout();
+        event(new OurExampleEvent(['username' => $username, 'action' => 'logout']));
         return redirect()->route('login')->with('success', 'Logged out successfuly');
     }
 
@@ -92,10 +91,11 @@ class UserController extends Controller
     {
         $incomingFields = $request->validate([
             'loginusername' => 'required',
-            'loginpassword' => 'required'
+            'loginpassword' => 'required',
         ]);
         if (auth()->attempt(['username' => $incomingFields['loginusername'], 'password' => $incomingFields['loginpassword']])) {
             $request->session()->regenerate();
+            event(new OurExampleEvent(['username' => auth()->user()->username, 'action' => 'login']));
             return redirect()->route('login')->with('success', 'Logged in successfully');
         } else {
 
@@ -107,8 +107,8 @@ class UserController extends Controller
     {
         $incomingFields = $request->validate([
             'username' => ['required', 'min:3', 'max:10', Rule::unique('users', 'username')],
-            'email' => ['required', 'email', Rule::unique('users', 'email')],
-            'password' => ['required', 'min: 6', 'confirmed']
+            'email'    => ['required', 'email', Rule::unique('users', 'email')],
+            'password' => ['required', 'min: 6', 'confirmed'],
         ]);
         $user = User::create($incomingFields);
         auth()->login($user);

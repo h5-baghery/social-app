@@ -1,9 +1,11 @@
 <?php
 
+use App\Events\ChatMessage;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RateAndCommentController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,3 +57,17 @@ Route::get('/explorer', [PostController::class, 'explorer'])->name('explorer');
 // follow related routes
 Route::post('/follow/{user}', [FollowController::class, 'follow'])->name('follow')->middleware('auth');
 Route::delete('/unfollow/{user}', [FollowController::class, 'unfollow'])->name('unfollow')->middleware('auth');
+
+// Chat route
+Route::post('/send-chat-message', function (Request $request) {
+    $formFields = $request->validate([
+        'textvalue' => 'required',
+    ]);
+
+    if (! trim(strip_tags($formFields['textvalue']))) {
+        return response()->noContent();
+    }
+    broadcast(new ChatMessage(['username' => auth()->user()->username, 'textvalue' => strip_tags($request->textvalue), 'avatar' => auth()->user()->avatar]))->toOthers();
+    return response()->noContent();
+
+})->middleware('auth');
