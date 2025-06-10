@@ -6,16 +6,13 @@
     <div class="search-overlay-top shadow-sm">
       <div class="container container--narrow">
         <label for="live-search-field" class="search-overlay-icon"><i class="fas fa-search"></i></label>
-        <input wire:model.live.debounce.750ms="searchTerm" autocomplete="off" type="text" id="live-search-field" class="live-search-field" placeholder="What are you interested in?">
+        <input x-on:keydown="document.querySelector('.circle-loader').classList.add('circle-loader--visible'); if(document.querySelector('#no-results')){document.querySelector('#no-results').style.display = 'none'}" wire:model.live.debounce.500ms="searchTerm" autocomplete="off" type="text" id="live-search-field" class="live-search-field" placeholder="What are you interested in?">
         <span class="close-live-search" x-on:click="isOpen = false;"><i class="fas fa-times-circle"></i></span>
       </div>
     </div>
 
     <div class="search-overlay-bottom">
       <div class="container container--narrow py-3">
-        <pre>SearchTerm:{{ $searchTerm }}</pre>
-        <p>hi</p>
-        <pre>Results:{{ count($results) }}</pre>
         <div class="circle-loader"></div>
         <div class="live-search-results live-search-results--visible">
           @if (count($results))
@@ -31,8 +28,8 @@
             </div>
           @endif
 
-          @if (!(count($results)) && $searchTerm !== "")
-            no result found
+          @if (!count($results) && $searchTerm !== "")
+          <p id="no-results" class="alert alert-danger text-center shadow-sm"> no result found </p> 
           @endif
 
         </div>
