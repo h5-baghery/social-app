@@ -34,6 +34,7 @@ class Chat extends Component
         array_push($this->chatLog, ['selfmessage' => true, 'username' => auth()->user()->username, 'avatar' => auth()->user()->avatar, 'textvalue' => strip_tags($this->textvalue)]);
         broadcast(new ChatMessage(['selfmessage' => false, 'username' => auth()->user()->username, 'avatar' => auth()->user()->avatar, 'textvalue' => strip_tags($this->textvalue)]))->toOthers();
         $this->textvalue = '';
+        $this->dispatch('message-sent');
     }
 
     public function render()
