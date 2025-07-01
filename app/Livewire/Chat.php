@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire;
 
 use App\Events\ChatMessage;
@@ -20,21 +21,29 @@ class Chat extends Component
     {
         array_push($this->chatLog, $x['chat']);
     }
+    protected $rules = [
+        'textvalue' => 'required|string|max:500'
+    ];
 
     public function send()
     {
-        if (! auth()->check()) {
-            abort(403, 'Unathorized');
-        }
+        $this->validate();
 
-        if (trim(strip_tags($this->textvalue)) == "") {
-            return;
-        }
+        $message = [
+            'selfmessage' => false,
+            'username' => auth()->user()->username,
+            'avatar' => auth()->user()->avatar,
+            'textvalue' => strip_tags($this->textvalue)
+        ];
+        // Add to local chat immediately for instant feedback
+        $this->chatLog[] = array_merge($message, ['selfmessage' => true]);
 
-        array_push($this->chatLog, ['selfmessage' => true, 'username' => auth()->user()->username, 'avatar' => auth()->user()->avatar, 'textvalue' => strip_tags($this->textvalue)]);
-        broadcast(new ChatMessage(['selfmessage' => false, 'username' => auth()->user()->username, 'avatar' => auth()->user()->avatar, 'textvalue' => strip_tags($this->textvalue)]))->toOthers();
-        $this->textvalue = '';
-        $this->dispatch('message-sent');
+        // Dispatch broadcast in background
+        dispatch(function () use ($message) {
+            broadcast(new ChatMessage($message))->toOthers();
+        });
+
+        $this->reset('textvalue'); // Faster than manual reset
     }
 
     public function render()

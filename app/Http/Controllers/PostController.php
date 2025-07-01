@@ -1,11 +1,14 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Mail\NewPostEmail;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class PostController extends Controller
 {
@@ -89,8 +92,7 @@ class PostController extends Controller
 
         return redirect()->route('singlepost', ['post' => $post->id])->with('success', 'Post successfully updated.');
 
-        $post->save();
-        return view('create-post', ['post' => $post, 'edit' => true]);
+        // return view('create-post', ['post' => $post, 'edit' => true]);
     }
 
     public function deletePost(Request $request, Post $post)
@@ -159,6 +161,8 @@ class PostController extends Controller
         $incomingFields['user_id'] = auth()->user()->id;
 
         $newPost = Post::create($incomingFields);
+
+        Mail::to(auth()->user()->email)->send(new NewPostEmail(['name' => auth()->user()->username, 'title' => $newPost->title]));
 
         return redirect()->route('singlepost', ['post' => $newPost->id])->with('success', 'New post successfully created.');
     }
